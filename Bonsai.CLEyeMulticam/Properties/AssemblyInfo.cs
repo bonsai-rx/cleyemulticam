@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Bonsai.CLEyeMulticam")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("HP")]
+[assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("Bonsai.CLEyeMulticam")]
-[assembly: AssemblyCopyright("Copyright © HP 2011")]
+[assembly: AssemblyCopyright("Copyright © Gonçalo C. Lopes 2011-2012")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
