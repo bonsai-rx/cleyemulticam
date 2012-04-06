@@ -53,6 +53,7 @@ namespace Bonsai.CLEyeMulticam
                 if (camera != IntPtr.Zero)
                 {
                     CLEye.CLEyeSetCameraParameter(camera, CLEyeCameraParameter.CLEYE_AUTO_GAIN, value ? 1 : 0);
+                    if (!autoGain) Gain = gain;
                 }
             }
         }
@@ -66,6 +67,7 @@ namespace Bonsai.CLEyeMulticam
                 if (camera != IntPtr.Zero)
                 {
                     CLEye.CLEyeSetCameraParameter(camera, CLEyeCameraParameter.CLEYE_AUTO_EXPOSURE, value ? 1 : 0);
+                    if (!autoExposure) Exposure = exposure;
                 }
             }
         }
@@ -79,6 +81,12 @@ namespace Bonsai.CLEyeMulticam
                 if (camera != IntPtr.Zero)
                 {
                     CLEye.CLEyeSetCameraParameter(camera, CLEyeCameraParameter.CLEYE_AUTO_WHITEBALANCE, value ? 1 : 0);
+                    if (!autoWhiteBalance)
+                    {
+                        WhiteBalanceRed = whiteBalanceRed;
+                        WhiteBalanceGreen = whiteBalanceGreen;
+                        WhiteBalanceBlue = whiteBalanceBlue;
+                    }
                 }
             }
         }
