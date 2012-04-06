@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using OpenCV.Net;
 using System.Threading;
+using System.ComponentModel;
 
 namespace Bonsai.CLEyeMulticam
 {
@@ -16,11 +17,23 @@ namespace Bonsai.CLEyeMulticam
         volatile bool running;
         ManualResetEventSlim stop;
 
+        int gain;
+        int exposure;
+        int whiteBalanceRed;
+        int whiteBalanceGreen;
+        int whiteBalanceBlue;
+        bool autoGain;
+        bool autoExposure;
+        bool autoWhiteBalance;
+
         public CLEyeSource()
         {
             ColorMode = CLEyeCameraColorMode.CLEYE_COLOR_RAW;
             Resolution = CLEyeCameraResolution.CLEYE_VGA;
             FrameRate = 60;
+
+            AutoWhiteBalance = true;
+            Exposure = 511;
         }
 
         public int CameraIndex { get; set; }
@@ -30,6 +43,120 @@ namespace Bonsai.CLEyeMulticam
         public CLEyeCameraResolution Resolution { get; set; }
 
         public float FrameRate { get; set; }
+
+        public bool AutoGain
+        {
+            get { return autoGain; }
+            set
+            {
+                autoGain = value;
+                if (camera != IntPtr.Zero)
+                {
+                    CLEye.CLEyeSetCameraParameter(camera, CLEyeCameraParameter.CLEYE_AUTO_GAIN, value ? 1 : 0);
+                }
+            }
+        }
+
+        public bool AutoExposure
+        {
+            get { return autoExposure; }
+            set
+            {
+                autoExposure = value;
+                if (camera != IntPtr.Zero)
+                {
+                    CLEye.CLEyeSetCameraParameter(camera, CLEyeCameraParameter.CLEYE_AUTO_EXPOSURE, value ? 1 : 0);
+                }
+            }
+        }
+
+        public bool AutoWhiteBalance
+        {
+            get { return autoWhiteBalance; }
+            set
+            {
+                autoWhiteBalance = value;
+                if (camera != IntPtr.Zero)
+                {
+                    CLEye.CLEyeSetCameraParameter(camera, CLEyeCameraParameter.CLEYE_AUTO_WHITEBALANCE, value ? 1 : 0);
+                }
+            }
+        }
+
+        [Range(0, 79)]
+        [Editor(DesignTypes.TrackbarEditor, "System.Drawing.Design.UITypeEditor, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")]
+        public int Gain
+        {
+            get { return gain; }
+            set
+            {
+                gain = value;
+                if (camera != IntPtr.Zero)
+                {
+                    CLEye.CLEyeSetCameraParameter(camera, CLEyeCameraParameter.CLEYE_GAIN, value);
+                }
+            }
+        }
+
+        [Range(0, 511)]
+        [Editor(DesignTypes.TrackbarEditor, "System.Drawing.Design.UITypeEditor, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")]
+        public int Exposure
+        {
+            get { return exposure; }
+            set
+            {
+                exposure = value;
+                if (camera != IntPtr.Zero)
+                {
+                    CLEye.CLEyeSetCameraParameter(camera, CLEyeCameraParameter.CLEYE_EXPOSURE, value);
+                }
+            }
+        }
+
+        [Range(0, 255)]
+        [Editor(DesignTypes.TrackbarEditor, "System.Drawing.Design.UITypeEditor, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")]
+        public int WhiteBalanceRed
+        {
+            get { return whiteBalanceRed; }
+            set
+            {
+                whiteBalanceRed = value;
+                if (camera != IntPtr.Zero)
+                {
+                    CLEye.CLEyeSetCameraParameter(camera, CLEyeCameraParameter.CLEYE_WHITEBALANCE_RED, value);
+                }
+            }
+        }
+
+        [Range(0, 255)]
+        [Editor(DesignTypes.TrackbarEditor, "System.Drawing.Design.UITypeEditor, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")]
+        public int WhiteBalanceGreen
+        {
+            get { return whiteBalanceGreen; }
+            set
+            {
+                whiteBalanceGreen = value;
+                if (camera != IntPtr.Zero)
+                {
+                    CLEye.CLEyeSetCameraParameter(camera, CLEyeCameraParameter.CLEYE_WHITEBALANCE_GREEN, value);
+                }
+            }
+        }
+
+        [Range(0, 255)]
+        [Editor(DesignTypes.TrackbarEditor, "System.Drawing.Design.UITypeEditor, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")]
+        public int WhiteBalanceBlue
+        {
+            get { return whiteBalanceBlue; }
+            set
+            {
+                whiteBalanceBlue = value;
+                if (camera != IntPtr.Zero)
+                {
+                    CLEye.CLEyeSetCameraParameter(camera, CLEyeCameraParameter.CLEYE_WHITEBALANCE_BLUE, value);
+                }
+            }
+        }
 
         protected override void Start()
         {
@@ -60,6 +187,14 @@ namespace Bonsai.CLEyeMulticam
             }
 
             camera = CLEye.CLEyeCreateCamera(guid, ColorMode, Resolution, FrameRate);
+            AutoGain = autoGain;
+            AutoExposure = autoExposure;
+            AutoWhiteBalance = autoWhiteBalance;
+            Gain = gain;
+            Exposure = exposure;
+            WhiteBalanceRed = whiteBalanceRed;
+            WhiteBalanceGreen = whiteBalanceGreen;
+            WhiteBalanceBlue = whiteBalanceBlue;
 
             int width, height;
             CLEye.CLEyeCameraGetFrameDimensions(camera, out width, out height);
