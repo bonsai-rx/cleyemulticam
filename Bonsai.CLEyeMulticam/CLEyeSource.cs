@@ -15,7 +15,6 @@ namespace Bonsai.CLEyeMulticam
         IplImage output;
         Thread captureThread;
         volatile bool running;
-        ManualResetEventSlim stop;
 
         int gain;
         int exposure;
@@ -181,7 +180,7 @@ namespace Bonsai.CLEyeMulticam
         protected override void Stop()
         {
             running = false;
-            stop.Wait();
+            if (captureThread != Thread.CurrentThread) captureThread.Join();
             CLEye.CLEyeCameraStop(camera);
             captureThread = null;
         }
@@ -221,13 +220,13 @@ namespace Bonsai.CLEyeMulticam
                     break;
             }
 
-            stop = new ManualResetEventSlim();
             return base.Load();
         }
 
         protected override void Unload()
         {
             CLEye.CLEyeDestroyCamera(camera);
+            base.Unload();
         }
 
         void CaptureNewFrame()
@@ -243,8 +242,6 @@ namespace Bonsai.CLEyeMulticam
                     Subject.OnNext(output);
                 }
             }
-
-            stop.Set();
         }
     }
 }
