@@ -5,6 +5,8 @@ using System.Text;
 using OpenCV.Net;
 using System.Threading;
 using System.ComponentModel;
+using System.Reactive.Linq;
+using System.Reactive.Disposables;
 
 namespace Bonsai.CLEyeMulticam
 {
@@ -13,8 +15,6 @@ namespace Bonsai.CLEyeMulticam
         IntPtr camera;
         IplImage image;
         IplImage output;
-        Thread captureThread;
-        volatile bool running;
 
         int gain;
         int exposure;
@@ -165,26 +165,6 @@ namespace Bonsai.CLEyeMulticam
             }
         }
 
-        protected override void Start()
-        {
-            captureThread = new Thread(CaptureNewFrame);
-            if (!CLEye.CLEyeCameraStart(camera))
-            {
-                throw new InvalidOperationException("Unable to start camera.");
-            }
-
-            running = true;
-            captureThread.Start();
-        }
-
-        protected override void Stop()
-        {
-            running = false;
-            if (captureThread != Thread.CurrentThread) captureThread.Join();
-            CLEye.CLEyeCameraStop(camera);
-            captureThread = null;
-        }
-
         public override IDisposable Load()
         {
             var guid = CLEye.CLEyeGetCameraUUID(CameraIndex);
@@ -229,19 +209,30 @@ namespace Bonsai.CLEyeMulticam
             base.Unload();
         }
 
-        void CaptureNewFrame()
+        protected override IObservable<IplImage> Generate()
         {
-            while (running)
-            {
-                if (CLEye.CLEyeCameraGetFrame(camera, image.ImageData, 500))
+            return Observable.Using(
+                () =>
                 {
-                    if (image.NumChannels == 4)
+                    if (!CLEye.CLEyeCameraStart(camera))
                     {
-                        ImgProc.cvCvtColor(image, output, ColorConversion.BGRA2BGR);
+                        throw new InvalidOperationException("Unable to start camera.");
                     }
-                    Subject.OnNext(output);
-                }
-            }
+
+                    return Disposable.Create(() => CLEye.CLEyeCameraStop(camera));
+                },
+                resource => ObservableCombinators.GenerateWithThread<IplImage>(observer =>
+                {
+                    if (CLEye.CLEyeCameraGetFrame(camera, image.ImageData, 500))
+                    {
+                        if (image.NumChannels == 4)
+                        {
+                            ImgProc.cvCvtColor(image, output, ColorConversion.BGRA2BGR);
+                        }
+
+                        observer.OnNext(output);
+                    }
+                }));
         }
     }
 }
