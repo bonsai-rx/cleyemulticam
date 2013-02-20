@@ -230,7 +230,7 @@ namespace Bonsai.CLEyeMulticam
                             ImgProc.cvCvtColor(image, output, ColorConversion.BGRA2BGR);
                         }
 
-                        observer.OnNext(output);
+                        observer.OnNext(output.Clone());
                     }
                 }));
         }
