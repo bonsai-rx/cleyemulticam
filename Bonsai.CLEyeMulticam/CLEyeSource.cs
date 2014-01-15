@@ -12,6 +12,7 @@ namespace Bonsai.CLEyeMulticam
 {
     public class CLEyeSource : Source<IplImage>
     {
+        IObservable<IplImage> source;
         IntPtr camera;
         IplImage image;
         IplImage output;
@@ -33,6 +34,28 @@ namespace Bonsai.CLEyeMulticam
 
             AutoWhiteBalance = true;
             Exposure = 511;
+
+            source = Observable.Using(
+                () =>
+                {
+                    Load();
+                    return Disposable.Create(Unload);
+                },
+                resource => ObservableCombinators.GenerateWithThread<IplImage>(observer =>
+                {
+                    if (CLEye.CLEyeCameraGetFrame(camera, image.ImageData, 500))
+                    {
+                        if (image.Channels == 4)
+                        {
+                            CV.CvtColor(image, output, ColorConversion.Bgra2Bgr);
+                        }
+
+                        observer.OnNext(output.Clone());
+                    }
+                }))
+                .PublishReconnectable()
+                .RefCount();
+
         }
 
         public int CameraIndex { get; set; }
@@ -91,7 +114,7 @@ namespace Bonsai.CLEyeMulticam
         }
 
         [Range(0, 79)]
-        [Editor(DesignTypes.TrackbarEditor, "System.Drawing.Design.UITypeEditor, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")]
+        [Editor(DesignTypes.SliderEditor, "System.Drawing.Design.UITypeEditor, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")]
         public int Gain
         {
             get { return gain; }
@@ -106,7 +129,7 @@ namespace Bonsai.CLEyeMulticam
         }
 
         [Range(0, 511)]
-        [Editor(DesignTypes.TrackbarEditor, "System.Drawing.Design.UITypeEditor, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")]
+        [Editor(DesignTypes.SliderEditor, "System.Drawing.Design.UITypeEditor, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")]
         public int Exposure
         {
             get { return exposure; }
@@ -121,7 +144,7 @@ namespace Bonsai.CLEyeMulticam
         }
 
         [Range(0, 255)]
-        [Editor(DesignTypes.TrackbarEditor, "System.Drawing.Design.UITypeEditor, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")]
+        [Editor(DesignTypes.SliderEditor, "System.Drawing.Design.UITypeEditor, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")]
         public int WhiteBalanceRed
         {
             get { return whiteBalanceRed; }
@@ -136,7 +159,7 @@ namespace Bonsai.CLEyeMulticam
         }
 
         [Range(0, 255)]
-        [Editor(DesignTypes.TrackbarEditor, "System.Drawing.Design.UITypeEditor, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")]
+        [Editor(DesignTypes.SliderEditor, "System.Drawing.Design.UITypeEditor, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")]
         public int WhiteBalanceGreen
         {
             get { return whiteBalanceGreen; }
@@ -151,7 +174,7 @@ namespace Bonsai.CLEyeMulticam
         }
 
         [Range(0, 255)]
-        [Editor(DesignTypes.TrackbarEditor, "System.Drawing.Design.UITypeEditor, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")]
+        [Editor(DesignTypes.SliderEditor, "System.Drawing.Design.UITypeEditor, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")]
         public int WhiteBalanceBlue
         {
             get { return whiteBalanceBlue; }
@@ -165,7 +188,7 @@ namespace Bonsai.CLEyeMulticam
             }
         }
 
-        public override IDisposable Load()
+        private void Load()
         {
             var guid = CLEye.CLEyeGetCameraUUID(CameraIndex);
             if (guid == Guid.Empty)
@@ -190,49 +213,32 @@ namespace Bonsai.CLEyeMulticam
             {
                 case CLEyeCameraColorMode.CLEYE_COLOR_RAW:
                 case CLEyeCameraColorMode.CLEYE_COLOR_PROCESSED:
-                    image = new IplImage(new CvSize(width, height), 8, 4);
-                    output = new IplImage(image.Size, 8, 3);
+                    image = new IplImage(new Size(width, height), IplDepth.U8, 4);
+                    output = new IplImage(image.Size, IplDepth.U8, 3);
                     break;
                 case CLEyeCameraColorMode.CLEYE_MONO_RAW:
                 case CLEyeCameraColorMode.CLEYE_MONO_PROCESSED:
-                    image = new IplImage(new CvSize(width, height), 8, 1);
+                    image = new IplImage(new Size(width, height), IplDepth.U8, 1);
                     output = image;
                     break;
             }
 
-            return base.Load();
+            if (!CLEye.CLEyeCameraStart(camera))
+            {
+                throw new InvalidOperationException("Unable to start camera.");
+            }
         }
 
-        protected override void Unload()
+        private void Unload()
         {
+            CLEye.CLEyeCameraStop(camera);
             CLEye.CLEyeDestroyCamera(camera);
-            base.Unload();
+            camera = IntPtr.Zero;
         }
 
-        protected override IObservable<IplImage> Generate()
+        public override IObservable<IplImage> Generate()
         {
-            return Observable.Using(
-                () =>
-                {
-                    if (!CLEye.CLEyeCameraStart(camera))
-                    {
-                        throw new InvalidOperationException("Unable to start camera.");
-                    }
-
-                    return Disposable.Create(() => CLEye.CLEyeCameraStop(camera));
-                },
-                resource => ObservableCombinators.GenerateWithThread<IplImage>(observer =>
-                {
-                    if (CLEye.CLEyeCameraGetFrame(camera, image.ImageData, 500))
-                    {
-                        if (image.NumChannels == 4)
-                        {
-                            ImgProc.cvCvtColor(image, output, ColorConversion.BGRA2BGR);
-                        }
-
-                        observer.OnNext(output.Clone());
-                    }
-                }));
+            return source;
         }
     }
 }
