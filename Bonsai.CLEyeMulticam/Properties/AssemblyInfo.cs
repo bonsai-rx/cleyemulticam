@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Bonsai.CLEyeMulticam")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("Bonsai - CLEyeMulticam Library")]
+[assembly: AssemblyDescription("Bonsai Library containing modules for acquiring images from PSEye cameras.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("Gonçalo Lopes")]
 [assembly: AssemblyProduct("Bonsai.CLEyeMulticam")]
-[assembly: AssemblyCopyright("Copyright © Gonçalo C. Lopes 2011-2013")]
+[assembly: AssemblyCopyright("Copyright © Gonçalo Lopes 2011-2014")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -32,4 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyVersion("2.0.0.0")]
+[assembly: AssemblyInformationalVersion("2.0.0")]

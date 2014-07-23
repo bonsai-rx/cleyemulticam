@@ -36,6 +36,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+    <BuildPackage>true</BuildPackage>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -62,9 +63,9 @@
     <Compile Include="Properties\AssemblyInfo.Generated.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="CLEyeMulticam.dll">
+    <None Include="CLEyeMulticam.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Externals\Bonsai\Bonsai.Core\Bonsai.Core.csproj">
@@ -77,6 +78,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Bonsai.CLEyeMulticam.nuspec">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
