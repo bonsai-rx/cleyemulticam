@@ -14,10 +14,6 @@
     <releaseNotes>First public prerelease of the CLEye SDK interface for Bonsai.</releaseNotes>
     <copyright>Gonçalo Lopes © 2014</copyright>
     <tags>Bonsai PSEye CLEye</tags>
-    <dependencies>
-      <dependency id="Bonsai.Core" version="2.0.0" />
-      <dependency id="OpenCV.Net" version="3.2.2" />
-    </dependencies>
   </metadata>
   <files>
     <file src="CLEyeMulticam.dll" target="build\native\bin\x86"/>
