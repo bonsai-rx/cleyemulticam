@@ -75,7 +75,6 @@
     <Compile Include="Properties\AssemblyInfo.Generated.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
     <None Include="CLEyeMulticam.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
