@@ -58,6 +58,9 @@ namespace Bonsai.CLEyeMulticam
 
         }
 
+        [TypeConverter(typeof(CameraGuidConverter))]
+        public Guid? CameraGuid { get; set; }
+
         public int CameraIndex { get; set; }
 
         public CLEyeCameraColorMode ColorMode { get; set; }
@@ -190,13 +193,22 @@ namespace Bonsai.CLEyeMulticam
 
         private void Load()
         {
-            var guid = CLEye.CLEyeGetCameraUUID(CameraIndex);
-            if (guid == Guid.Empty)
+            var guid = CameraGuid;
+            if (!guid.HasValue)
             {
-                throw new InvalidOperationException("No camera found with the given index.");
+                guid = CLEye.CLEyeGetCameraUUID(CameraIndex);
+                if (guid == Guid.Empty)
+                {
+                    throw new InvalidOperationException("No camera found with the given index.");
+                }
             }
 
-            camera = CLEye.CLEyeCreateCamera(guid, ColorMode, Resolution, FrameRate);
+            camera = CLEye.CLEyeCreateCamera(guid.Value, ColorMode, Resolution, FrameRate);
+            if (camera == IntPtr.Zero)
+            {
+                throw new InvalidOperationException("No camera found with the given GUID.");
+            }
+
             AutoGain = autoGain;
             AutoExposure = autoExposure;
             AutoWhiteBalance = autoWhiteBalance;
@@ -239,6 +251,26 @@ namespace Bonsai.CLEyeMulticam
         public override IObservable<IplImage> Generate()
         {
             return source;
+        }
+
+        class CameraGuidConverter : GuidConverter
+        {
+            public override bool GetStandardValuesSupported(ITypeDescriptorContext context)
+            {
+                return true;
+            }
+
+            public override TypeConverter.StandardValuesCollection GetStandardValues(ITypeDescriptorContext context)
+            {
+                var cameraGuids = new List<Guid>();
+                var cameraCount = CLEye.CLEyeGetCameraCount();
+                for (int i = 0; i < cameraCount; i++)
+                {
+                    cameraGuids.Add(CLEye.CLEyeGetCameraUUID(i));
+                }
+
+                return new StandardValuesCollection(cameraGuids);
+            }
         }
     }
 }
