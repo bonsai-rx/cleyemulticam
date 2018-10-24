@@ -7,11 +7,13 @@ using System.Threading;
 using System.ComponentModel;
 using System.Reactive.Linq;
 using System.Reactive.Disposables;
+using System.Threading.Tasks;
 
 namespace Bonsai.CLEyeMulticam
 {
     public class CLEyeSource : Source<IplImage>
     {
+        readonly object captureLock = new object();
         IObservable<IplImage> source;
         IntPtr camera;
         IplImage image;
@@ -35,27 +37,37 @@ namespace Bonsai.CLEyeMulticam
             AutoWhiteBalance = true;
             Exposure = 511;
 
-            source = Observable.Using(
-                () =>
+            source = Observable.Create<IplImage>((observer, cancellationToken) =>
+            {
+                return Task.Factory.StartNew(() =>
                 {
-                    Load();
-                    return Disposable.Create(Unload);
-                },
-                resource => ObservableCombinators.GenerateWithThread<IplImage>(observer =>
-                {
-                    if (CLEye.CLEyeCameraGetFrame(camera, image.ImageData, 500))
+                    lock (captureLock)
                     {
-                        if (image.Channels == 4)
+                        Load();
+                        try
                         {
-                            CV.CvtColor(image, output, ColorConversion.Bgra2Bgr);
+                            while (!cancellationToken.IsCancellationRequested)
+                            {
+                                if (CLEye.CLEyeCameraGetFrame(camera, image.ImageData, 500))
+                                {
+                                    if (image.Channels == 4)
+                                    {
+                                        CV.CvtColor(image, output, ColorConversion.Bgra2Bgr);
+                                    }
+
+                                    observer.OnNext(output.Clone());
+                                }
+                            }
                         }
-
-                        observer.OnNext(output.Clone());
+                        finally { Unload(); }
                     }
-                }))
-                .PublishReconnectable()
-                .RefCount();
-
+                },
+                cancellationToken,
+                TaskCreationOptions.LongRunning,
+                TaskScheduler.Default);
+            })
+            .PublishReconnectable()
+            .RefCount();
         }
 
         [TypeConverter(typeof(CameraGuidConverter))]
