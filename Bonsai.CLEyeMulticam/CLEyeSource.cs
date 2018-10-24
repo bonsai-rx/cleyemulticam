@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 
 namespace Bonsai.CLEyeMulticam
 {
+    [Description("Generates a sequence of images acquired from the specified PSEye camera.")]
     public class CLEyeSource : Source<IplImage>
     {
         readonly object captureLock = new object();
@@ -71,16 +72,22 @@ namespace Bonsai.CLEyeMulticam
         }
 
         [TypeConverter(typeof(CameraGuidConverter))]
+        [Description("The optional GUID used to uniquely identify the acquisition camera.")]
         public Guid? CameraGuid { get; set; }
 
+        [Description("The camera index used to find a camera, in case no GUID is specified.")]
         public int CameraIndex { get; set; }
 
+        [Description("The camera color processing mode.")]
         public CLEyeCameraColorMode ColorMode { get; set; }
 
+        [Description("The camera acquisition resolution.")]
         public CLEyeCameraResolution Resolution { get; set; }
 
+        [Description("The frame rate at which to acquire image frames.")]
         public float FrameRate { get; set; }
 
+        [Description("Indicates whether auto gain calibration should be used.")]
         public bool AutoGain
         {
             get { return autoGain; }
@@ -95,6 +102,7 @@ namespace Bonsai.CLEyeMulticam
             }
         }
 
+        [Description("Indicates whether auto exposure should be used.")]
         public bool AutoExposure
         {
             get { return autoExposure; }
@@ -109,6 +117,7 @@ namespace Bonsai.CLEyeMulticam
             }
         }
 
+        [Description("Indicates whether auto white balance calibration should be used.")]
         public bool AutoWhiteBalance
         {
             get { return autoWhiteBalance; }
@@ -129,6 +138,7 @@ namespace Bonsai.CLEyeMulticam
         }
 
         [Range(0, 79)]
+        [Description("The fixed gain value, used when auto gain is disabled.")]
         [Editor(DesignTypes.SliderEditor, "System.Drawing.Design.UITypeEditor, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")]
         public int Gain
         {
@@ -144,6 +154,7 @@ namespace Bonsai.CLEyeMulticam
         }
 
         [Range(0, 511)]
+        [Description("The fixed exposure value, used when auto exposure is disabled.")]
         [Editor(DesignTypes.SliderEditor, "System.Drawing.Design.UITypeEditor, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")]
         public int Exposure
         {
@@ -159,6 +170,7 @@ namespace Bonsai.CLEyeMulticam
         }
 
         [Range(0, 255)]
+        [Description("The fixed white balance value for the red channel, used when auto white balance is disabled.")]
         [Editor(DesignTypes.SliderEditor, "System.Drawing.Design.UITypeEditor, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")]
         public int WhiteBalanceRed
         {
@@ -174,6 +186,7 @@ namespace Bonsai.CLEyeMulticam
         }
 
         [Range(0, 255)]
+        [Description("The fixed white balance value for the green channel, used when auto white balance is disabled.")]
         [Editor(DesignTypes.SliderEditor, "System.Drawing.Design.UITypeEditor, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")]
         public int WhiteBalanceGreen
         {
@@ -189,6 +202,7 @@ namespace Bonsai.CLEyeMulticam
         }
 
         [Range(0, 255)]
+        [Description("The fixed white balance value for the blue channel, used when auto white balance is disabled.")]
         [Editor(DesignTypes.SliderEditor, "System.Drawing.Design.UITypeEditor, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")]
         public int WhiteBalanceBlue
         {
