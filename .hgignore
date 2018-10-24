@@ -1,0 +1,6 @@
+syntax: glob
+*.suo
+*.user
+packages
+Bonsai.CLEyeMulticam/bin
+Bonsai.CLEyeMulticam/obj
